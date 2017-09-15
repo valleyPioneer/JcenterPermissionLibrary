@@ -6,5 +6,6 @@ package com.example.permission;
 
 public class Constants {
     public static final int DANGEROUS_PERMISSION_REQUEST_CODE = 1;
-    public static final int SPECIAL_PERMISSION_REQUEST_CODE = 2;
+    public static final int SYSTEM_ALERT_WINDOW = 2;
+    public static final int WRITE_SETTING_REQUEST_CODE = 3;
 }

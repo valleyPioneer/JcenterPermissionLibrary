@@ -12,9 +12,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.example.permission.Constants;
 import com.example.permission.PermissionTypes;
+import com.example.permission.ResultListener;
 import com.example.permission.utils.PermissionClassification;
 
 import java.util.ArrayList;
@@ -26,25 +28,86 @@ import java.util.List;
 
 public class PermissionCheckerActivity extends AppCompatActivity {
 
+    private List<String> dangerousPermissionList = new ArrayList<>();
+    private List<String> specialPermissionList = new ArrayList<>();
+    private ResultListener mResultListener;
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == Constants.SYSTEM_ALERT_WINDOW){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if(!Settings.canDrawOverlays(this)){
+                    Toast.makeText(this,"悬浮窗权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
+                    mResultListener.onFailure();
+                }
+                else{
+                    if(specialPermissionList.size() == 1)
+                        mResultListener.onSuccess();
+                    /** 继续申请第二个权限 */
+                    else
+                        requestSpecialPermission(Manifest.permission.WRITE_SETTINGS);
+                }
 
+
+            }
+        }
+        else if(requestCode == Constants.WRITE_SETTING_REQUEST_CODE){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if(!Settings.System.canWrite(this)){
+                    Toast.makeText(this,"系统设置权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
+                    mResultListener.onFailure();
+                }
+                else
+                    mResultListener.onSuccess();
+            }
+
+        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == Constants.DANGEROUS_PERMISSION_REQUEST_CODE){
+            boolean allGranted = true;
+            for(int i = 0; i < grantResults.length;i++){
+                if(grantResults[i] == PackageManager.PERMISSION_DENIED){
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted){
+                /** 危险权限申请完毕，开始申请特殊权限 */
+                if (!specialPermissionList.isEmpty())
+                    if(specialPermissionList.size() == 1)
+                        requestSpecialPermission(specialPermissionList.get(0));
+                    else if(specialPermissionList.size() == 2)
+                    /** 先申请system_alert_window权限 */
+                        requestSpecialPermission(Manifest.permission.SYSTEM_ALERT_WINDOW);
+                else
+                    mResultListener.onSuccess();
+
+            }
+            else{
+                Toast.makeText(this,"危险权限已被禁用，请在系统设置中手动开启！",Toast.LENGTH_SHORT).show();
+                mResultListener.onFailure();
+            }
+
+        }
     }
 
 
-    public final void checkPermission(String... permissions){
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+    public final void checkPermission(ResultListener resultListener,String... permissions){
+        mResultListener = resultListener;
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
+            /** 系统版本低于6.0直接回调成功接口 */
+            mResultListener.onSuccess();
             return;
+        }
+
 
         Boolean isReady = false;
-        List<String> dangerousPermissionList = new ArrayList<>();
-        List<String> specialPermissionList = new ArrayList<>();
 
         for(String permission : permissions){
             PermissionTypes type = PermissionClassification.classify(permission);
@@ -68,12 +131,19 @@ public class PermissionCheckerActivity extends AppCompatActivity {
 
         /** 对权限进行统一化申请 */
         if(isReady){
-            if(!dangerousPermissionList.isEmpty())
-                requestDangerousPermissions(dangerousPermissionList);
-
-            if(!specialPermissionList.isEmpty())
-                for(String permission : specialPermissionList)
-                    requestSpecialPermission(permission);
+            if (!dangerousPermissionList.isEmpty())
+                requestDangerousPermissions();
+            else if (!specialPermissionList.isEmpty()){
+                if(specialPermissionList.size() == 1)
+                    requestSpecialPermission(specialPermissionList.get(0));
+                else if(specialPermissionList.size() == 2)
+                    /** 先申请system_alert_window权限 */
+                    requestSpecialPermission(Manifest.permission.SYSTEM_ALERT_WINDOW);
+            }
+        }
+        else{
+            /** 无需申请权限,回调成功接口 */
+            mResultListener.onSuccess();
         }
 
     }
@@ -87,7 +157,7 @@ public class PermissionCheckerActivity extends AppCompatActivity {
 
     }
 
-    private void requestDangerousPermissions(List<String> dangerousPermissionList){
+    private void requestDangerousPermissions(){
         String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
         ActivityCompat.requestPermissions(this,permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
     }
@@ -121,12 +191,12 @@ public class PermissionCheckerActivity extends AppCompatActivity {
             case Manifest.permission.SYSTEM_ALERT_WINDOW:
                 Intent intent1 = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent1,Constants.SPECIAL_PERMISSION_REQUEST_CODE);
+                startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 Intent intent2 = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
                         Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent2, Constants.SPECIAL_PERMISSION_REQUEST_CODE);
+                startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
                 break;
             default:
         }

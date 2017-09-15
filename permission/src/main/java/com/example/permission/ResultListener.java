@@ -5,5 +5,6 @@ package com.example.permission;
  */
 
 public interface ResultListener {
-    void
+    void onSuccess();
+    void onFailure();
 }
