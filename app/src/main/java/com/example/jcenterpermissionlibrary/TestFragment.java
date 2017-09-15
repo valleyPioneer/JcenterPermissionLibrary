@@ -44,6 +44,6 @@ public class TestFragment extends PermissionCheckerFragment {
             public void onFailure() {
                 Toast.makeText(getContext(),"失败",Toast.LENGTH_SHORT).show();
             }
-        }, Manifest.permission.CAMERA,Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.WRITE_SETTINGS,Manifest.permission.READ_PHONE_STATE);
+        }, Manifest.permission.CAMERA,Manifest.permission.WRITE_SETTINGS,Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.READ_PHONE_STATE);
     }
 }

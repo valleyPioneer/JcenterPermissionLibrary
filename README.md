@@ -14,7 +14,7 @@
 1. void onSuccess()<br>
     含义：设备已拥有所申请的所有权限<br>
     回调场景：<br>
-        1. 设备sdk低于23
+        1. 设备sdk低于23<br>
         2. 设备所申请的所有权限（包括普通权限、危险权限、特殊权限）都已拥有
 
 2. void onFailure()<br>
@@ -47,4 +47,6 @@
             ```java
                 checkPermission(ResultListener resultListener,String... permissions)
             ```
+---
 
+测试后发现，小米手机在动态申请SYSTEM_ALERT_WINDOW权限时，应用程序会崩溃一次，然后重启，因此该权限的申请会导致接口回调多次，尚待解决！

@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.permission.Constants;
@@ -36,30 +37,40 @@ public class PermissionCheckerActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == Constants.SYSTEM_ALERT_WINDOW){
+            Log.d("Permission","run into system alert window");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.canDrawOverlays(this)){
                     Toast.makeText(this,"悬浮窗权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
                     mResultListener.onFailure();
                 }
                 else{
-                    if(specialPermissionList.size() == 1)
+                    if(specialPermissionList.size() == 1) {
+                        Log.d("Permission", "ready to invoke onSuccess in system alert window");
                         mResultListener.onSuccess();
+                    }
                     /** 继续申请第二个权限 */
-                    else
+                    else{
+                        Log.d("Permission", "request write permission");
                         requestSpecialPermission(Manifest.permission.WRITE_SETTINGS);
+                    }
+
                 }
 
 
             }
         }
         else if(requestCode == Constants.WRITE_SETTING_REQUEST_CODE){
+            Log.d("Permission","run into write setting");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.System.canWrite(this)){
                     Toast.makeText(this,"系统设置权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
                     mResultListener.onFailure();
                 }
-                else
+                else{
+                    Log.d("Permission", "run 3");
                     mResultListener.onSuccess();
+                }
+
             }
 
         }
@@ -134,6 +145,7 @@ public class PermissionCheckerActivity extends AppCompatActivity {
             if (!dangerousPermissionList.isEmpty())
                 requestDangerousPermissions();
             else if (!specialPermissionList.isEmpty()){
+                Log.d("Permission","run 0");
                 if(specialPermissionList.size() == 1)
                     requestSpecialPermission(specialPermissionList.get(0));
                 else if(specialPermissionList.size() == 2)
