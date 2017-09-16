@@ -89,12 +89,13 @@ public class PermissionCheckerActivity extends AppCompatActivity {
             }
             if (allGranted){
                 /** 危险权限申请完毕，开始申请特殊权限 */
-                if (!specialPermissionList.isEmpty())
+                if (!specialPermissionList.isEmpty()){
                     if(specialPermissionList.size() == 1)
                         requestSpecialPermission(specialPermissionList.get(0));
                     else if(specialPermissionList.size() == 2)
                     /** 先申请system_alert_window权限 */
                         requestSpecialPermission(Manifest.permission.SYSTEM_ALERT_WINDOW);
+                }
                 else
                     mResultListener.onSuccess();
 
