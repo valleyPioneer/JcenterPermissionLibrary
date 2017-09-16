@@ -10,6 +10,11 @@
 
 ## 使用说明
 
+* 项目依赖地址
+    ```java
+    compile 'com.ebupt.valleypioneer:PermissionChecker:1.0.0'
+    ```
+
 * 回调接口ResultListener中方法的含义
 1. void onSuccess()<br>
     含义：设备已拥有所申请的所有权限<br>
