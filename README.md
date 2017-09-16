@@ -1,5 +1,9 @@
 # JcenterPermissionLibrary
 
+[![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[ ![Download](https://api.bintray.com/packages/valleypioneer/maven/PermissionChecker/images/download.svg)](https://bintray.com/valleypioneer/maven/PermissionChecker/_latestVersion)
+
+
 * 动态权限申请流程封装（包括危险权限和特殊权限）
 
 * Android版本自动判断
@@ -12,7 +16,7 @@
 
 * 项目依赖地址
     ```java
-    compile 'com.ebupt.valleypioneer:PermissionChecker:1.0.0'
+    compile 'com.ebupt.valleypioneer:PermissionChecker:lastestVersion'
     ```
 
 * 回调接口ResultListener中方法的含义
