@@ -15,13 +15,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.permission.Constants;
+
 import com.example.permission.PermissionTypes;
 import com.example.permission.ResultListener;
 import com.example.permission.utils.PermissionClassification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by 半米阳光 on 2017/9/14.
@@ -33,10 +34,15 @@ public class PermissionCheckerActivity extends AppCompatActivity {
     private List<String> specialPermissionList = new ArrayList<>();
     private ResultListener mResultListener;
 
+    /** 随机生成权限请求码，取值范围调大以避免和用户自定义的请求码发生冲突 */
+    private int dangerousPermissionRequestCodeRandom = new Random().nextInt(5) + 10;
+    private int systemAlertWindowPermissionRequestCodeRandom = new Random().nextInt(5) + 20;
+    private int writeSettingPermissionRequestCodeRandom = new Random().nextInt(5) + 30;
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == Constants.SYSTEM_ALERT_WINDOW){
+        if(requestCode == systemAlertWindowPermissionRequestCodeRandom){
             Log.d("Permission","run into system alert window");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.canDrawOverlays(this)){
@@ -59,7 +65,7 @@ public class PermissionCheckerActivity extends AppCompatActivity {
 
             }
         }
-        else if(requestCode == Constants.WRITE_SETTING_REQUEST_CODE){
+        else if(requestCode == writeSettingPermissionRequestCodeRandom){
             Log.d("Permission","run into write setting");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.System.canWrite(this)){
@@ -79,7 +85,7 @@ public class PermissionCheckerActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == Constants.DANGEROUS_PERMISSION_REQUEST_CODE){
+        if(requestCode == dangerousPermissionRequestCodeRandom){
             boolean allGranted = true;
             for(int i = 0; i < grantResults.length;i++){
                 if(grantResults[i] == PackageManager.PERMISSION_DENIED){
@@ -172,7 +178,7 @@ public class PermissionCheckerActivity extends AppCompatActivity {
 
     private void requestDangerousPermissions(){
         String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-        ActivityCompat.requestPermissions(this,permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
+        ActivityCompat.requestPermissions(this,permissionArray, dangerousPermissionRequestCodeRandom);
     }
 
     private boolean checkSpecialPermission(String permission){
@@ -204,12 +210,12 @@ public class PermissionCheckerActivity extends AppCompatActivity {
             case Manifest.permission.SYSTEM_ALERT_WINDOW:
                 Intent intent1 = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
+                startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 Intent intent2 = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
                         Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
+                startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
                 break;
             default:
         }
