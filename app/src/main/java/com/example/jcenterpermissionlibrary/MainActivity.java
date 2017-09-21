@@ -2,15 +2,18 @@ package com.example.jcenterpermissionlibrary;
 
 
 import android.Manifest;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
+import com.example.permission.PermissionChecker;
 import com.example.permission.ResultListener;
-import com.example.permission.activity.PermissionCheckerActivity;
 
-public class MainActivity extends PermissionCheckerActivity {
+
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +25,7 @@ public class MainActivity extends PermissionCheckerActivity {
     }
 
     private void requestPermission(){
-        checkPermission(new ResultListener() {
+        PermissionChecker.checkPermission(this,new ResultListener() {
             @Override
             public void onSuccess() {
                 Toast.makeText(MainActivity.this,"成功",Toast.LENGTH_SHORT).show();
@@ -35,4 +38,15 @@ public class MainActivity extends PermissionCheckerActivity {
         }, Manifest.permission.CAMERA,Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.WRITE_SETTINGS,Manifest.permission.READ_PHONE_STATE);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        PermissionChecker.onActivityResult(requestCode,resultCode,data);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionChecker.onRequestPermissionsResult(requestCode,permissions,grantResults);
+    }
 }

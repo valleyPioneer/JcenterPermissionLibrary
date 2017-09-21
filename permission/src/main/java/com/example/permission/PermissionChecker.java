@@ -1,17 +1,17 @@
-package com.example.permission.activity;
+package com.example.permission;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.Settings;
-import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,25 +28,37 @@ import java.util.Random;
  * Created by 半米阳光 on 2017/9/14.
  */
 
-public class PermissionCheckerActivity extends AppCompatActivity {
+public class PermissionChecker {
 
-    private List<String> dangerousPermissionList = new ArrayList<>();
-    private List<String> specialPermissionList = new ArrayList<>();
-    private ResultListener mResultListener;
+    private static List<String> dangerousPermissionList = new ArrayList<>();
+    private static List<String> specialPermissionList = new ArrayList<>();
+    private static ResultListener mResultListener;
 
-    /** 随机生成权限请求码，取值范围调大以避免和用户自定义的请求码发生冲突 */
-    private int dangerousPermissionRequestCodeRandom = new Random().nextInt(5) + 10;
-    private int systemAlertWindowPermissionRequestCodeRandom = new Random().nextInt(5) + 20;
-    private int writeSettingPermissionRequestCodeRandom = new Random().nextInt(5) + 30;
+    /** 随机生成不相同的权限请求码，取值范围调大以避免和用户自定义的请求码发生冲突 */
+    private static int dangerousPermissionRequestCodeRandom = new Random().nextInt(5) + 10;
+    private static int systemAlertWindowPermissionRequestCodeRandom = new Random().nextInt(5) + 20;
+    private static int writeSettingPermissionRequestCodeRandom = new Random().nextInt(5) + 30;
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    private static Context mContext; /** 其实一直都是activity类型的对象 */
+    private static Fragment fragmentReference;
+    private static int mode;//0代表activity，1代表fragment
+
+    public static void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(mode == 1){
+            List<Fragment> fragments = fragmentReference.getChildFragmentManager().getFragments();
+            if(fragments != null){
+                /** 如果存在子fragment，将结果回调会子fragment的onActivityResult中 */
+                for(Fragment fragment : fragments)
+                    if(fragment != null)
+                        fragment.onActivityResult(requestCode,resultCode,data);
+            }
+        }
+        
         if(requestCode == systemAlertWindowPermissionRequestCodeRandom){
             Log.d("Permission","run into system alert window");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                if(!Settings.canDrawOverlays(this)){
-                    Toast.makeText(this,"悬浮窗权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
+                if(!Settings.canDrawOverlays(mContext)){
+                    Toast.makeText(mContext,"悬浮窗权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
                     mResultListener.onFailure();
                 }
                 else{
@@ -68,8 +80,8 @@ public class PermissionCheckerActivity extends AppCompatActivity {
         else if(requestCode == writeSettingPermissionRequestCodeRandom){
             Log.d("Permission","run into write setting");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                if(!Settings.System.canWrite(this)){
-                    Toast.makeText(this,"系统设置权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
+                if(!Settings.System.canWrite(mContext)){
+                    Toast.makeText(mContext,"系统设置权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
                     mResultListener.onFailure();
                 }
                 else{
@@ -82,9 +94,17 @@ public class PermissionCheckerActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    public static void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(mode == 1){
+            List<Fragment> fragments = fragmentReference.getChildFragmentManager().getFragments();
+            if(fragments != null){
+                /** 如果存在子fragment，将结果回调会子fragment的onActivityResult中 */
+                for(Fragment fragment : fragments)
+                    if(fragment != null)
+                        fragment.onRequestPermissionsResult(requestCode,permissions,grantResults);
+            }
+        }
+        
         if(requestCode == dangerousPermissionRequestCodeRandom){
             boolean allGranted = true;
             for(int i = 0; i < grantResults.length;i++){
@@ -107,7 +127,7 @@ public class PermissionCheckerActivity extends AppCompatActivity {
 
             }
             else{
-                Toast.makeText(this,"危险权限已被禁用，请在系统设置中手动开启！",Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext,"危险权限已被禁用，请在系统设置中手动开启！",Toast.LENGTH_SHORT).show();
                 mResultListener.onFailure();
             }
 
@@ -115,7 +135,17 @@ public class PermissionCheckerActivity extends AppCompatActivity {
     }
 
 
-    public final void checkPermission(ResultListener resultListener,String... permissions){
+    public static void checkPermission(Object context,ResultListener resultListener,String... permissions){
+        if(context instanceof Activity){
+            mContext = (Activity)context;
+            mode = 0;
+        }
+        else if(context instanceof Fragment){
+            mContext = ((Fragment)context).getContext();
+            mode = 1;
+            fragmentReference = (Fragment) context;
+        }
+
         mResultListener = resultListener;
 
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
@@ -168,30 +198,42 @@ public class PermissionCheckerActivity extends AppCompatActivity {
     }
 
 
-    private boolean checkDangerousPermission(String permission){
-        if(ActivityCompat.checkSelfPermission(this,permission) == PackageManager.PERMISSION_DENIED)
+    private static boolean checkDangerousPermission(String permission){
+        if(ContextCompat.checkSelfPermission(mContext,permission) == PackageManager.PERMISSION_DENIED)
             return false;
         else
             return true;
 
     }
 
-    private void requestDangerousPermissions(){
-        String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-        ActivityCompat.requestPermissions(this,permissionArray, dangerousPermissionRequestCodeRandom);
+    private static void requestDangerousPermissions(){
+        if(mode == 0){
+            String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
+            ActivityCompat.requestPermissions((Activity) mContext,permissionArray, dangerousPermissionRequestCodeRandom);
+        }
+        else{
+            String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
+            Fragment parentFragment = fragmentReference.getParentFragment();
+            if(parentFragment == null)
+                fragmentReference.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+            /** 如果父fragment存在，则回调父fragment的requestPermissions方法 */
+            else
+                parentFragment.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+        }
+       
     }
-
-    private boolean checkSpecialPermission(String permission){
+    
+    private static boolean checkSpecialPermission(String permission){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             switch (permission){
                 case Manifest.permission.SYSTEM_ALERT_WINDOW:
-                    if(!Settings.canDrawOverlays(this))
+                    if(!Settings.canDrawOverlays(mContext))
                         return false;
                     else
                         return true;
 
                 case Manifest.permission.WRITE_SETTINGS:
-                    if(!Settings.System.canWrite(this))
+                    if(!Settings.System.canWrite(mContext))
                       return false;
                     else
                         return true;
@@ -205,17 +247,23 @@ public class PermissionCheckerActivity extends AppCompatActivity {
             return true;
     }
 
-    private void requestSpecialPermission(String permission){
+    private static void requestSpecialPermission(String permission){
         switch (permission){
             case Manifest.permission.SYSTEM_ALERT_WINDOW:
                 Intent intent1 = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
+                        Uri.parse("package:" + mContext.getPackageName()));
+                if(mode == 0)
+                    ((Activity)mContext).startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
+                else
+                    fragmentReference.startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 Intent intent2 = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                        Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
+                        Uri.parse("package:" + mContext.getPackageName()));
+                if(mode == 0)
+                    ((Activity)mContext).startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
+                else
+                    fragmentReference.startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
                 break;
             default:
         }
