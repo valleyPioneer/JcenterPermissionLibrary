@@ -35,27 +35,12 @@ public class PermissionChecker {
     private static List<String> specialPermissionList = new ArrayList<>();
     private static ResultListener mResultListener;
 
-    /** 随机生成不相同的权限请求码，取值范围调大以避免和用户自定义的请求码发生冲突 */
-    private static int dangerousPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.DANGEROUS,"");
-    private static int systemAlertWindowPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.SYSTEM_ALERT_WINDOW);
-    private static int writeSettingPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.WRITE_SETTINGS);
-
     private static Context mContext; /** 其实一直都是activity类型的对象 */
     private static Fragment fragmentReference;
     private static int mode;//0代表activity，1代表fragment
 
     public static void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(mode == 1){
-            List<Fragment> fragments = fragmentReference.getChildFragmentManager().getFragments();
-            if(fragments != null){
-                /** 如果存在子fragment，将结果回调会子fragment的onActivityResult中 */
-                for(Fragment fragment : fragments)
-                    if(fragment != null)
-                        fragment.onActivityResult(requestCode,resultCode,data);
-            }
-        }
-        
-        if(requestCode == systemAlertWindowPermissionRequestCodeRandom){
+        if(requestCode == Constants.SYSTEM_ALERT_WINDOW){
             Log.d("Permission","run into system alert window");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.canDrawOverlays(mContext)){
@@ -78,7 +63,7 @@ public class PermissionChecker {
 
             }
         }
-        else if(requestCode == writeSettingPermissionRequestCodeRandom){
+        else if(requestCode == Constants.WRITE_SETTING_REQUEST_CODE){
             Log.d("Permission","run into write setting");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.System.canWrite(mContext)){
@@ -96,17 +81,7 @@ public class PermissionChecker {
     }
 
     public static void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(mode == 1){
-            List<Fragment> fragments = fragmentReference.getChildFragmentManager().getFragments();
-            if(fragments != null){
-                /** 如果存在子fragment，将结果回调会子fragment的onActivityResult中 */
-                for(Fragment fragment : fragments)
-                    if(fragment != null)
-                        fragment.onRequestPermissionsResult(requestCode,permissions,grantResults);
-            }
-        }
-        
-        if(requestCode == dangerousPermissionRequestCodeRandom){
+        if(requestCode == Constants.DANGEROUS_PERMISSION_REQUEST_CODE){
             boolean allGranted = true;
             for(int i = 0; i < grantResults.length;i++){
                 if(grantResults[i] == PackageManager.PERMISSION_DENIED){
@@ -210,16 +185,11 @@ public class PermissionChecker {
     private static void requestDangerousPermissions(){
         if(mode == 0){
             String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-            ActivityCompat.requestPermissions((Activity) mContext,permissionArray, dangerousPermissionRequestCodeRandom);
+            ActivityCompat.requestPermissions((Activity) mContext,permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
         }
         else{
             String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-            Fragment parentFragment = fragmentReference.getParentFragment();
-            if(parentFragment == null)
-                fragmentReference.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
-            /** 如果父fragment存在，则回调父fragment的requestPermissions方法 */
-            else
-                parentFragment.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+            fragmentReference.requestPermissions(permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
         }
        
     }
@@ -254,17 +224,17 @@ public class PermissionChecker {
                 Intent intent1 = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + mContext.getPackageName()));
                 if(mode == 0)
-                    ((Activity)mContext).startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
+                    ((Activity)mContext).startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
                 else
-                    fragmentReference.startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
+                    fragmentReference.startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 Intent intent2 = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
                         Uri.parse("package:" + mContext.getPackageName()));
                 if(mode == 0)
-                    ((Activity)mContext).startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
+                    ((Activity)mContext).startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
                 else
-                    fragmentReference.startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
+                    fragmentReference.startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
                 break;
             default:
         }

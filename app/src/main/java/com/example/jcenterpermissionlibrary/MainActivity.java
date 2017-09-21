@@ -21,11 +21,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 //        Fragment fragment = new ParentFragment();
 //        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout,fragment).commit();
-        requestPermission();
+          requestPermissions();
     }
 
-    private void requestPermission(){
-        PermissionChecker.checkPermission(this,new ResultListener() {
+    private void requestPermissions(){
+        PermissionChecker.checkPermission(this, new ResultListener() {
             @Override
             public void onSuccess() {
                 Toast.makeText(MainActivity.this,"成功",Toast.LENGTH_SHORT).show();
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure() {
                 Toast.makeText(MainActivity.this,"失败",Toast.LENGTH_SHORT).show();
             }
-        }, Manifest.permission.CAMERA,Manifest.permission.SYSTEM_ALERT_WINDOW,Manifest.permission.WRITE_SETTINGS,Manifest.permission.READ_PHONE_STATE);
+        },Manifest.permission.CAMERA,Manifest.permission.WRITE_SETTINGS,Manifest.permission.SYSTEM_ALERT_WINDOW);
     }
 
     @Override
@@ -47,6 +47,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        PermissionChecker.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        PermissionChecker.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
