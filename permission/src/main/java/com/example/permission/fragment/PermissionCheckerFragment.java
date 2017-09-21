@@ -31,11 +31,6 @@ public class PermissionCheckerFragment extends Fragment{
     private List<String> specialPermissionList = new ArrayList<>();
     private ResultListener mResultListener;
 
-    /** 随机生成不同的整形数字，便于父fragment回调子fragment权限申请方法时通过requestCode来区别对待 */
-    private int dangerousPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.DANGEROUS,"");
-    private int systemAlertWindowPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.SYSTEM_ALERT_WINDOW);
-    private int writeSettingPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.WRITE_SETTINGS);
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -47,7 +42,7 @@ public class PermissionCheckerFragment extends Fragment{
 //                    fragment.onActivityResult(requestCode,resultCode,data);
 //        }
 //        else{
-            if(requestCode == systemAlertWindowPermissionRequestCodeRandom){
+            if(requestCode == Constants.SYSTEM_ALERT_WINDOW){
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                     if(!Settings.canDrawOverlays(getContext())){
                         Toast.makeText(getContext(),"悬浮窗权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
@@ -62,7 +57,7 @@ public class PermissionCheckerFragment extends Fragment{
                     }
                 }
             }
-            else if(requestCode == writeSettingPermissionRequestCodeRandom){
+            else if(requestCode == Constants.WRITE_SETTING_REQUEST_CODE){
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                     if(!Settings.System.canWrite(getContext())){
                         Toast.makeText(getContext(),"系统设置权限被禁用,请在设置中手动开启！",Toast.LENGTH_SHORT).show();
@@ -87,7 +82,7 @@ public class PermissionCheckerFragment extends Fragment{
 //                    fragment.onRequestPermissionsResult(requestCode,permissions,grantResults);
 //        }
 //        else{
-            if(requestCode == dangerousPermissionRequestCodeRandom){
+            if(requestCode == Constants.DANGEROUS_PERMISSION_REQUEST_CODE){
                 boolean allGranted = true;
                 for(int i = 0; i < grantResults.length;i++){
                     if(grantResults[i] == PackageManager.PERMISSION_DENIED){
@@ -183,11 +178,11 @@ public class PermissionCheckerFragment extends Fragment{
         String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
 //        Fragment parentFragment = getParentFragment();
 //        if(parentFragment == null)
-//            requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+//            requestPermissions(permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
 //        /** 如果父fragment存在，则回调父fragment的requestPermissions方法 */
 //        else
-//            parentFragment.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
-        requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+//            parentFragment.requestPermissions(permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
+        requestPermissions(permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
     }
 
     private boolean checkSpecialPermission(String permission){
@@ -219,12 +214,12 @@ public class PermissionCheckerFragment extends Fragment{
             case Manifest.permission.SYSTEM_ALERT_WINDOW:
                 Intent intent1 = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getContext().getPackageName()));
-                startActivityForResult(intent1,systemAlertWindowPermissionRequestCodeRandom);
+                startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 Intent intent2 = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
                         Uri.parse("package:" + getContext().getPackageName()));
-                startActivityForResult(intent2, writeSettingPermissionRequestCodeRandom);
+                startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
                 break;
             default:
         }
