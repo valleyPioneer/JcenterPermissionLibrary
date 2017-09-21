@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.example.permission.PermissionTypes;
 import com.example.permission.ResultListener;
 import com.example.permission.utils.PermissionClassification;
+import com.example.permission.utils.RandomUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +36,9 @@ public class PermissionChecker {
     private static ResultListener mResultListener;
 
     /** 随机生成不相同的权限请求码，取值范围调大以避免和用户自定义的请求码发生冲突 */
-    private static int dangerousPermissionRequestCodeRandom = new Random().nextInt(5) + 10;
-    private static int systemAlertWindowPermissionRequestCodeRandom = new Random().nextInt(5) + 20;
-    private static int writeSettingPermissionRequestCodeRandom = new Random().nextInt(5) + 30;
+    private static int dangerousPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.DANGEROUS,"");
+    private static int systemAlertWindowPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.SYSTEM_ALERT_WINDOW);
+    private static int writeSettingPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.WRITE_SETTINGS);
 
     private static Context mContext; /** 其实一直都是activity类型的对象 */
     private static Fragment fragmentReference;
