@@ -30,7 +30,6 @@ public class PermissionCheckerFragment extends Fragment{
     private List<String> dangerousPermissionList = new ArrayList<>();
     private List<String> specialPermissionList = new ArrayList<>();
     private ResultListener mResultListener;
-    private int specialPermissionCount = 0;
 
     /** 随机生成不同的整形数字，便于父fragment回调子fragment权限申请方法时通过requestCode来区别对待 */
     private int dangerousPermissionRequestCodeRandom = RandomUtil.getDifferentRandomNumber(PermissionTypes.DANGEROUS,"");
@@ -40,14 +39,14 @@ public class PermissionCheckerFragment extends Fragment{
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        List<Fragment> fragments = getChildFragmentManager().getFragments();
-        if(fragments != null){
-            /** 如果存在子fragment，将结果回调会子fragment的onActivityResult中 */
-            for(Fragment fragment : fragments)
-                if(fragment != null)
-                    fragment.onActivityResult(requestCode,resultCode,data);
-        }
-        else{
+//        List<Fragment> fragments = getChildFragmentManager().getFragments();
+//        if(fragments != null){
+//            *//** 如果存在子fragment，将结果回调会子fragment的onActivityResult中 *//*
+//            for(Fragment fragment : fragments)
+//                if(fragment != null)
+//                    fragment.onActivityResult(requestCode,resultCode,data);
+//        }
+//        else{
             if(requestCode == systemAlertWindowPermissionRequestCodeRandom){
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                     if(!Settings.canDrawOverlays(getContext())){
@@ -75,19 +74,19 @@ public class PermissionCheckerFragment extends Fragment{
 
             }
         }
-    }
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        List<Fragment> fragments = getChildFragmentManager().getFragments();
-        if(fragments != null){
-            /** 如果存在子fragment，将结果回调会子fragment的onRequestPermissionResult中 */
-            for(Fragment fragment : fragments)
-                if(fragment != null)
-                    fragment.onRequestPermissionsResult(requestCode,permissions,grantResults);
-        }
-        else{
+//        List<Fragment> fragments = getChildFragmentManager().getFragments();
+//        if(fragments != null){
+//            /** 如果存在子fragment，将结果回调会子fragment的onRequestPermissionResult中 */
+//            for(Fragment fragment : fragments)
+//                if(fragment != null)
+//                    fragment.onRequestPermissionsResult(requestCode,permissions,grantResults);
+//        }
+//        else{
             if(requestCode == dangerousPermissionRequestCodeRandom){
                 boolean allGranted = true;
                 for(int i = 0; i < grantResults.length;i++){
@@ -117,7 +116,7 @@ public class PermissionCheckerFragment extends Fragment{
             }
         }
 
-    }
+//    }
 
 
     public final void checkPermission(ResultListener resultListener,String... permissions){
@@ -182,12 +181,13 @@ public class PermissionCheckerFragment extends Fragment{
 
     private void requestDangerousPermissions(){
         String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-        Fragment parentFragment = getParentFragment();
-        if(parentFragment == null)
-            requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
-        /** 如果父fragment存在，则回调父fragment的requestPermissions方法 */
-        else
-            parentFragment.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+//        Fragment parentFragment = getParentFragment();
+//        if(parentFragment == null)
+//            requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+//        /** 如果父fragment存在，则回调父fragment的requestPermissions方法 */
+//        else
+//            parentFragment.requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
+        requestPermissions(permissionArray, dangerousPermissionRequestCodeRandom);
     }
 
     private boolean checkSpecialPermission(String permission){

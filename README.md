@@ -48,7 +48,7 @@
     * 需要申请权限的fragment有父fragment
         1. 需要申请权限的子fragment及其父fragment两者同时继承PermissionCheckerFragment
 
-        2. 在需要申请权限的子fragment中调用父fragment
+        2. 在需要申请权限的子fragment中调用
             ```java
                 checkPermission(ResultListener resultListener,String... permissions)
             ```
