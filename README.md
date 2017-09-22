@@ -41,21 +41,13 @@
     ```
 * Fragment用法
 
-    * 需要申请权限的fragment没有父fragment
+    * 需要申请权限的fragment
         1. 需要申请权限的fragment继承PermissionCheckerFragment
 
         2. 在需要申请权限的地方调用
             ```java
              checkPermission(ResultListener resultListener,String... permissions)
              ```
-
-    * 需要申请权限的fragment有父fragment
-        1. 需要申请权限的子fragment及其父fragment两者同时继承PermissionCheckerFragment
-
-        2. 在需要申请权限的子fragment中调用
-            ```java
-                checkPermission(ResultListener resultListener,String... permissions)
-            ```
 ---
 
 测试后发现，小米手机在动态申请SYSTEM_ALERT_WINDOW权限时，应用程序会崩溃一次，然后重启，因此该权限的申请会导致接口回调多次，尚待解决！<br>
