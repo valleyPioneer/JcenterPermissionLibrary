@@ -39,8 +39,13 @@ public class PermissionChecker {
     private static Fragment fragmentReference;
     private static int mode;//0代表activity，1代表fragment
 
+    /** 由于在fragment中请求权限会先回调Activity的方法，所以加入不同请求码的机制 */
+    private static int dangerousRequestCode = RandomUtil.getDifferentRandomNumber(PermissionTypes.DANGEROUS,"");
+    private static int systemAlertWindowRequestCode = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.SYSTEM_ALERT_WINDOW);
+    private static int writeSettingsRequestCode = RandomUtil.getDifferentRandomNumber(PermissionTypes.SPECIAL,Manifest.permission.WRITE_SETTINGS);
+
     public static void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == Constants.SYSTEM_ALERT_WINDOW){
+        if(requestCode == systemAlertWindowRequestCode){
             Log.d("Permission","run into system alert window");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.canDrawOverlays(mContext)){
@@ -63,7 +68,7 @@ public class PermissionChecker {
 
             }
         }
-        else if(requestCode == Constants.WRITE_SETTING_REQUEST_CODE){
+        else if(requestCode == writeSettingsRequestCode){
             Log.d("Permission","run into write setting");
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
                 if(!Settings.System.canWrite(mContext)){
@@ -81,7 +86,7 @@ public class PermissionChecker {
     }
 
     public static void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(requestCode == Constants.DANGEROUS_PERMISSION_REQUEST_CODE){
+        if(requestCode == dangerousRequestCode){
             boolean allGranted = true;
             for(int i = 0; i < grantResults.length;i++){
                 if(grantResults[i] == PackageManager.PERMISSION_DENIED){
@@ -185,11 +190,11 @@ public class PermissionChecker {
     private static void requestDangerousPermissions(){
         if(mode == 0){
             String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-            ActivityCompat.requestPermissions((Activity) mContext,permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions((Activity) mContext,permissionArray, dangerousRequestCode);
         }
         else{
             String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-            fragmentReference.requestPermissions(permissionArray, Constants.DANGEROUS_PERMISSION_REQUEST_CODE);
+            fragmentReference.requestPermissions(permissionArray, dangerousRequestCode);
         }
        
     }
@@ -224,17 +229,17 @@ public class PermissionChecker {
                 Intent intent1 = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + mContext.getPackageName()));
                 if(mode == 0)
-                    ((Activity)mContext).startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
+                    ((Activity)mContext).startActivityForResult(intent1,systemAlertWindowRequestCode);
                 else
-                    fragmentReference.startActivityForResult(intent1,Constants.SYSTEM_ALERT_WINDOW);
+                    fragmentReference.startActivityForResult(intent1,systemAlertWindowRequestCode);
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 Intent intent2 = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
                         Uri.parse("package:" + mContext.getPackageName()));
                 if(mode == 0)
-                    ((Activity)mContext).startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
+                    ((Activity)mContext).startActivityForResult(intent2, writeSettingsRequestCode);
                 else
-                    fragmentReference.startActivityForResult(intent2, Constants.WRITE_SETTING_REQUEST_CODE);
+                    fragmentReference.startActivityForResult(intent2, writeSettingsRequestCode);
                 break;
             default:
         }

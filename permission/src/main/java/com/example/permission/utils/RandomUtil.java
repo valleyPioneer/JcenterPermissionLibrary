@@ -23,15 +23,15 @@ public class RandomUtil {
         Random random = new Random();
         switch (permissionTypes){
             case DANGEROUS:
-                while(!dangerousPermissionRandomSet.add(random.nextInt(5) + 10));
+                while(!dangerousPermissionRandomSet.add(random.nextInt(50) + 10));
                 return getLastElementInLinkedHashSet(dangerousPermissionRandomSet);
             case SPECIAL:
                 if(permission.equals(Manifest.permission.SYSTEM_ALERT_WINDOW)){
-                    while (!systemAlertWindowRandomSet.add(random.nextInt(5) + 20));
+                    while (!systemAlertWindowRandomSet.add(random.nextInt(50) + 20));
                     return getLastElementInLinkedHashSet(systemAlertWindowRandomSet);
                 }
                 else if(permission.equals(Manifest.permission.WRITE_SETTINGS)){
-                    while (!writeSettingRandomSet.add(random.nextInt(5) + 30));
+                    while (!writeSettingRandomSet.add(random.nextInt(50) + 30));
                     return getLastElementInLinkedHashSet(writeSettingRandomSet);
                 }
                 /** 实际不可达 */
