@@ -3,6 +3,7 @@ package com.example.permission;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -12,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -108,7 +110,18 @@ public class PermissionChecker {
 
             }
             else{
-                Toast.makeText(mContext,"危险权限已被禁用，请在系统设置中手动开启！",Toast.LENGTH_SHORT).show();
+                boolean shouldShowRequestPermissionRationale = false;
+                for(String permission : permissions)
+                    if(shouldShowRequestPermissionRationale(permission)){
+                        shouldShowRequestPermissionRationale = true;
+                        break;
+                    }
+                if(!shouldShowRequestPermissionRationale){
+                    Toast.makeText(mContext,"危险权限已被禁用，请在系统设置中手动开启！",Toast.LENGTH_SHORT).show();
+                }
+                else
+                    Toast.makeText(mContext,"危险权限已被禁用！",Toast.LENGTH_SHORT).show();
+                /** 标志本次权限申请失败，下次仍然可以以弹窗的形式申请权限 */
                 mResultListener.onFailure();
             }
 
@@ -117,6 +130,10 @@ public class PermissionChecker {
 
 
     public static void checkPermission(Object context,ResultListener resultListener,String... permissions){
+        /** 由于是static变量，生命周期存在与整个application中 */
+        dangerousPermissionList.clear();
+        specialPermissionList.clear();
+
         if(context instanceof Activity){
             mContext = (Activity)context;
             mode = 0;
@@ -188,15 +205,45 @@ public class PermissionChecker {
     }
 
     private static void requestDangerousPermissions(){
-        if(mode == 0){
-            String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
-            ActivityCompat.requestPermissions((Activity) mContext,permissionArray, dangerousRequestCode);
+        /** 得知权限尚未获取后，加入弹窗判断是否已经拒绝过权限申请 */
+        boolean shouldShowRequestPermissionRationale = false;
+        /** 只要这组权限中有一个被拒绝过，那么这组权限必然都被拒绝过 */
+        for(String permission : dangerousPermissionList)
+            if(shouldShowRequestPermissionRationale(permission)){
+                shouldShowRequestPermissionRationale = true;
+                break;
+            }
+
+        if (shouldShowRequestPermissionRationale) {
+            new AlertDialog.Builder(mContext)
+                    .setMessage("该应用的正常运行需要权限支持！")
+                    .setPositiveButton("马上申请", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            requestRealDangerousPermission();
+                        }
+                    })
+                    .setNegativeButton("稍后再说", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Toast.makeText(mContext,"危险权限已被禁用！",Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
         }
         else{
-            String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
+                requestRealDangerousPermission();
+        }
+    }
+
+    private static void requestRealDangerousPermission(){
+        String[] permissionArray = dangerousPermissionList.toArray(new String[dangerousPermissionList.size()]);
+        if (mode == 0) {
+            ActivityCompat.requestPermissions((Activity) mContext, permissionArray, dangerousRequestCode);
+        } else {
             fragmentReference.requestPermissions(permissionArray, dangerousRequestCode);
         }
-       
     }
     
     private static boolean checkSpecialPermission(String permission){
@@ -242,6 +289,14 @@ public class PermissionChecker {
                     fragmentReference.startActivityForResult(intent2, writeSettingsRequestCode);
                 break;
             default:
+        }
+    }
+
+    private static boolean shouldShowRequestPermissionRationale(String permission){
+        if(mode == 0){
+            return ActivityCompat.shouldShowRequestPermissionRationale((Activity)mContext,permission);
+        }else{
+            return fragmentReference.shouldShowRequestPermissionRationale(permission);
         }
     }
 }

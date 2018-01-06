@@ -20,8 +20,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Fragment fragment = new ParentFragment();
-        getSupportFragmentManager().beginTransaction().add(R.id.frameLayout,fragment).commit();
-      //    requestPermissions();
+        //getSupportFragmentManager().beginTransaction().add(R.id.frameLayout,fragment).commit();
+          requestPermissions();
     }
 
     private void requestPermissions(){
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure() {
                 Toast.makeText(MainActivity.this,"失败",Toast.LENGTH_SHORT).show();
             }
-        },Manifest.permission.CAMERA,Manifest.permission.WRITE_SETTINGS,Manifest.permission.SYSTEM_ALERT_WINDOW);
+        },Manifest.permission.CAMERA,Manifest.permission.READ_PHONE_STATE,Manifest.permission.WRITE_SETTINGS,Manifest.permission.SYSTEM_ALERT_WINDOW);
     }
 
     @Override

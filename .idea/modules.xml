@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/JcenterPermissionLibrary.iml" filepath="$PROJECT_DIR$/JcenterPermissionLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PermissionChecker.iml" filepath="$PROJECT_DIR$/PermissionChecker.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/permission/permission.iml" filepath="$PROJECT_DIR$/permission/permission.iml" />
     </modules>
